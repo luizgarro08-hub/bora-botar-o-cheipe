@@ -87,12 +87,15 @@ app.put("/api/state", auth, async (req, res) => {
   } catch (e) { console.error(e); res.status(500).json({ erro: "Erro no servidor." }); }
 });
 
-app.use(express.static(path.join(__dirname, "public"), {
-  setHeaders: (res, file) => {
-    if (file.endsWith("sw.js") || file.endsWith("index.html")) res.setHeader("Cache-Control", "no-cache");
-  }
+const ARQUIVOS = ["index.html", "manifest.json", "sw.js", "icon-192.png", "icon-512.png"];
+app.get("/", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+ARQUIVOS.forEach(a => app.get("/" + a, (req, res) => {
+  if (a === "sw.js" || a === "index.html") res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(path.join(__dirname, a));
 }));
-
 (async () => {
   await pool.query(`CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
